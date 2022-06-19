@@ -1,5 +1,4 @@
 import cv2
-import time
 import numpy as np
 import torch
 from laplacian_pyramid import LaplacianPyramid
@@ -42,8 +41,8 @@ def blend(pyramid_A, pyramid_B):
 
     _blended_result = None
     for pA, pB in zip(pyramid_A, pyramid_B):
-        rows, cols, dpt = pA.shape
-        _stacked_image = np.hstack((pA[:, 0:cols//2], pB[:, cols//2:]))
+        mid_x = pA.shape[1] // 2
+        _stacked_image = np.hstack((pA[:, 0:mid_x], pB[:, mid_x:]))
         if _blended_result is None:
             _blended_result = _stacked_image
         else:
@@ -53,28 +52,27 @@ def blend(pyramid_A, pyramid_B):
     return _blended_result
 
 
-p1 = pyramid_method1(A, n_levels=2)
-p2 = pyramid_method2(A, n_levels=2)
-p3 = cv2.vconcat([p1[0], p2[0]])
-the_same = cv2.absdiff(p1[0], p2[0]).max() == 0
+def main():
+    pyramid_A = pyramid_method1(A, n_levels=6)
+    pyramid_B = pyramid_method1(B, n_levels=6)
+    _blended_result1 = blend(pyramid_A, pyramid_B)
+
+    pyramid_A = pyramid_method2(A, n_levels=6)
+    pyramid_B = pyramid_method2(B, n_levels=6)
+    _blended_result2 = blend(pyramid_A, pyramid_B)
+
+    cv2.putText(_blended_result1, 'OpenCV', (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+    cv2.putText(_blended_result2, 'PyTorch', (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+    result_image = cv2.hconcat([
+        _blended_result1,
+        _blended_result2
+    ])
+
+    cv2.imwrite('data/result.jpg', result_image)
+    cv2.imshow('image', result_image)
+    _ = cv2.waitKey(0)
 
 
-pyramid_A = pyramid_method1(A, n_levels=6)
-pyramid_B = pyramid_method1(B, n_levels=6)
-_blended_result1 = blend(pyramid_A, pyramid_B)
-
-pyramid_A = pyramid_method2(A, n_levels=6)
-pyramid_B = pyramid_method2(B, n_levels=6)
-_blended_result2 = blend(pyramid_A, pyramid_B)
-
-cv2.putText(_blended_result1, 'OpenCV', (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-cv2.putText(_blended_result2, 'PyTorch', (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-
-result_image = cv2.hconcat([
-    _blended_result1,
-    _blended_result2
-])
-
-cv2.imwrite('data/result.jpg', result_image)
-cv2.imshow('image', result_image)
-_ = cv2.waitKey(0)
+if __name__ == '__main__':
+    main()
