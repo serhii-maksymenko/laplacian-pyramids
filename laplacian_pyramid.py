@@ -7,7 +7,6 @@ class LaplacianPyramid(torch.nn.Module):
         super().__init__()
         self.reduce_blur_conv = torch.nn.Conv2d(3, 3, 5, stride=2, padding=2, padding_mode='reflect', groups=3,
                                                 bias=False)
-        self.reduce_pool_conv = torch.nn.Conv2d(3, 3, 2, stride=2, groups=3, bias=False)
         self.expand_unpool_conv = torch.nn.ConvTranspose2d(3, 3, 2, stride=2, groups=3, bias=False)
         self.expand_blur_conv = torch.nn.Conv2d(3, 3, 5, padding=2, padding_mode='reflect', groups=3, bias=False)
         blur_kernel = torch.tensor([
@@ -18,7 +17,6 @@ class LaplacianPyramid(torch.nn.Module):
             [1, 4, 6, 4, 1]
         ], dtype=torch.float)
         self.reduce_blur_conv.weight.data[::, 0] = blur_kernel / 256.0
-        self.reduce_pool_conv.weight.data[::, 0] = torch.tensor([[1, 0], [0, 0]], dtype=torch.float)
         self.expand_unpool_conv.weight.data[::, 0] = torch.tensor([[1, 0], [0, 0]], dtype=torch.float)
         self.expand_blur_conv.weight.data[::, 0] = (4 * blur_kernel) / 256.0
 
